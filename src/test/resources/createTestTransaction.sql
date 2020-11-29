@@ -1,0 +1,1 @@
+INSERT INTO Transaction VALUES (1,200.00, null, null, null, null, null)
