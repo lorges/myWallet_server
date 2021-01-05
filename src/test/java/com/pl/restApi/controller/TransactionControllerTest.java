@@ -5,23 +5,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pl.restApi.BaseTransactionUtils;
 import com.pl.restApi.dto.TransactionDto;
 import com.pl.restApi.exception.TransactionNotFoundException;
+import com.pl.restApi.mapper.TransactionMapper;
 import com.pl.restApi.model.Transaction;
-import com.pl.restApi.model.enums.TransactionKind;
-import com.pl.restApi.model.enums.TransactionType;
 import com.pl.restApi.service.ITransactionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
@@ -37,31 +36,54 @@ public class TransactionControllerTest extends BaseTransactionUtils {
 
     @Autowired
     private MockMvc mockMvc;
-
     @MockBean
     private ITransactionService transactionService;
+    @MockBean
+    private TransactionMapper transactionMapper;
 
     public List<Transaction> transactionList;
 
-    private final static String TRANSACTION_NAME = "Testowa";
-    private final static String TRANSACTION_DESC = "Testowy description";
-    private final static BigDecimal TRANSACTION_AMOUNT = BigDecimal.TEN;
-    private final static LocalDate TRANSACTION_DATE = LocalDate.of(2020,10,10);
-    private final static TransactionKind TRANSACTION_KIND = TransactionKind.FOOD;
-    private final static TransactionType TRANSACTION_TYPE = TransactionType.SPEND;
-
     @BeforeEach
     void setUp() {
-        this.transactionList = new ArrayList<>();
-        transactionList.add(new Transaction(1L, "Testowa 1", "Testowe 1 desc",
-                LocalDate.of(2020,10,10), BigDecimal.TEN, TransactionType.SPEND, TransactionKind.FOOD));
+        MockitoAnnotations.initMocks(this);
 
-        transactionList.add(new Transaction(2L, "Testowa 2", "Testowe 2 desc",
-                LocalDate.of(2020,10,10), BigDecimal.valueOf(23.333), TransactionType.SPEND, TransactionKind.FOOD));
+        this.transactionList = new ArrayList<>();
+        transactionList.add(transaction());
+        transactionList.add(new Transaction(2L, BaseTransactionUtils.TRANSACTION_NAME_2, BaseTransactionUtils.TRANSACTION_DESC_2,
+                BaseTransactionUtils.TRANSACTION_DATE_2, BaseTransactionUtils.TRANSACTION_AMOUNT_2, BaseTransactionUtils.TRANSACTION_TYPE_2,
+                BaseTransactionUtils.TRANSACTION_KIND_2, new HashSet<>()
+        ));
     }
 
     @Test
-    void shouldReturnEmptyListWhenTransactionsNotExists() throws Exception {
+    void getTransaction_shouldReturnTransaction_whenExists() throws Exception {
+        given(transactionService.getTransaction(1L)).willReturn(transaction());
+        given(transactionMapper.toTransactionDto(transaction())).willReturn(transactionDto());
+
+        mockMvc.perform(get("/transactions/1")
+                .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("transactionName", equalTo(TRANSACTION_NAME_1)))
+                .andExpect(jsonPath("transactionDesc", equalTo(TRANSACTION_DESC_1)))
+                .andExpect(jsonPath("transactionAmount", is(10)))
+                .andExpect(jsonPath("transactionKind", equalTo(TRANSACTION_KIND_1.name())))
+                .andExpect(jsonPath("transactionType", equalTo(TRANSACTION_TYPE_1.name())))
+                .andExpect(jsonPath("transactionDate", is(TRANSACTION_DATE_1.toString())));
+    }
+
+    @Test
+    void getTransaction_shouldThrowTransactionNotFoundException_whenNotExists() throws Exception {
+        doThrow(TransactionNotFoundException.class).when(transactionService).getTransaction(1L);
+
+        mockMvc.perform(get("/transactions/1")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        )
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getTransactions_shouldReturnEmptyList_whenTransactionsNotExists() throws Exception {
         given(transactionService.getTransactions()).willReturn(Collections.emptyList());
 
         mockMvc.perform(get("/transactions/")
@@ -72,66 +94,49 @@ public class TransactionControllerTest extends BaseTransactionUtils {
     }
 
     @Test
-    void shouldReturnTransactionsWhenTransactionsExists() throws Exception {
+    void getTransaction_shouldReturnTransactions_whenTransactionsExists() throws Exception {
         given(transactionService.getTransactions()).willReturn(transactionList);
+        given(transactionMapper.mapToTransactionDTOList(transactionList)).willReturn(getTransactionDtoList());
 
         mockMvc.perform(get("/transactions/")
-                .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].transactionName", equalTo("Testowa 1")))
-                .andExpect(jsonPath("$[0].transactionDesc", equalTo("Testowe 1 desc")))
-                .andExpect(jsonPath("$[0].transactionDate", is(LocalDate.of(2020,10, 10 ).toString())))
+                .andExpect(jsonPath("$[0].transactionName", equalTo(TRANSACTION_NAME_1)))
+                .andExpect(jsonPath("$[0].transactionDate", is(TRANSACTION_DATE_1.toString())))
                 .andExpect(jsonPath("$[0].transactionAmount", is(10)))
-                .andExpect(jsonPath("$[0].transactionType", equalTo("SPEND")))
-                .andExpect(jsonPath("$[0].transactionKind", equalTo("FOOD")))
-                .andExpect(jsonPath("$[1].transactionName", equalTo("Testowa 2")))
-                .andExpect(jsonPath("$[1].transactionDesc", equalTo("Testowe 2 desc")))
-                .andExpect(jsonPath("$[1].transactionDate", is(LocalDate.of(2020,10, 10 ).toString())));
+                .andExpect(jsonPath("$[0].transactionType", equalTo(TRANSACTION_TYPE_1.name())))
+                .andExpect(jsonPath("$[0].transactionKind", equalTo(TRANSACTION_KIND_1.name())))
 
+                .andExpect(jsonPath("$[1].transactionName", equalTo(TRANSACTION_NAME_2)))
+                .andExpect(jsonPath("$[1].transactionDate", is(TRANSACTION_DATE_2.toString())))
+                .andExpect(jsonPath("$[1].transactionAmount", is(1)))
+                .andExpect(jsonPath("$[1].transactionType", equalTo(TRANSACTION_TYPE_2.name())))
+                .andExpect(jsonPath("$[1].transactionKind", equalTo(TRANSACTION_KIND_2.name())));
     }
 
     @Test
-    void shouldReturnTransactionWhenSaved() throws Exception {
-        Transaction transaction = transaction();
-
-        given(transactionService.processSaveTransaction(transaction)).willReturn(transaction);
+    void saveTransaction_shouldReturnTransaction_whenSaved() throws Exception {
+        given(transactionService.processSaveTransaction(transactionDto())).willReturn(transaction());
+        given(transactionMapper.toTransactionDto(transaction())).willReturn(transactionDto());
 
         mockMvc.perform(post("/transactions/")
                     .content(toJson(transactionDto()))
                     .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(jsonPath("transactionName", equalTo(TRANSACTION_NAME)))
-                .andExpect(jsonPath("transactionDesc", equalTo(TRANSACTION_DESC)))
+                .andExpect(jsonPath("transactionName", equalTo(TRANSACTION_NAME_1)))
+                .andExpect(jsonPath("transactionDesc", equalTo(TRANSACTION_DESC_1)))
                 .andExpect(jsonPath("transactionAmount", is(10)))
-                .andExpect(jsonPath("transactionType", equalTo(TRANSACTION_TYPE.name())))
-                .andExpect(jsonPath("transactionDate", is(TRANSACTION_DATE.toString())))
-                .andExpect(jsonPath("transactionKind", equalTo(TRANSACTION_KIND.name())));
+                .andExpect(jsonPath("transactionType", equalTo(TRANSACTION_TYPE_1.name())))
+                .andExpect(jsonPath("transactionDate", is(TRANSACTION_DATE_1.toString())))
+                .andExpect(jsonPath("transactionKind", equalTo(TRANSACTION_KIND_1.name())));
     }
 
     @Test
-    void shouldReturnTransactionWhenFind() throws Exception, TransactionNotFoundException {
-        Transaction transaction = transaction();
-
-        given(transactionService.getTransaction(1L)).willReturn(transaction);
-
-        mockMvc.perform(get("/transactions/1")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                )
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(jsonPath("transactionName", equalTo(TRANSACTION_NAME)))
-                .andExpect(jsonPath("transactionDesc", equalTo(TRANSACTION_DESC)))
-                .andExpect(jsonPath("transactionAmount", is(10)))
-                .andExpect(jsonPath("transactionType", equalTo(TRANSACTION_TYPE.name())))
-                .andExpect(jsonPath("transactionDate", is(TRANSACTION_DATE.toString())))
-                .andExpect(jsonPath("transactionKind", equalTo(TRANSACTION_KIND.name())));
-    }
-
-    @Test
-    void shouldReturnStatusOkWhenTransactionDeleted() throws Exception, TransactionNotFoundException {
+    void deleteTransaction_shouldReturnStatusNoContent_whenTransactionDeleted() throws Exception, TransactionNotFoundException {
         doNothing().when(transactionService).deleteTransaction(1L);
 
         mockMvc.perform(delete("/transactions/1")
@@ -141,7 +146,7 @@ public class TransactionControllerTest extends BaseTransactionUtils {
     }
 
     @Test
-    void shouldThrowExceptionWhenTryDeletingNotExsitsTransaction() throws Exception, TransactionNotFoundException {
+    void  deleteTransaction_shouldThrowException_whenTryDeletingNotExistsTransaction() throws Exception, TransactionNotFoundException {
         doThrow(TransactionNotFoundException.class).when(transactionService).deleteTransaction(1L);
 
         mockMvc.perform(delete("/transactions/1")
@@ -150,24 +155,25 @@ public class TransactionControllerTest extends BaseTransactionUtils {
                 .andExpect(status().isBadRequest());
     }
 
-    //@Test
-    void shouldReturnTransactionDtoWhenTransactionEdited() throws Exception, TransactionNotFoundException {
+    @Test
+    void editTransaction_shouldReturnTransactionDto_whenTransactionEdited() throws Exception, TransactionNotFoundException {
         TransactionDto transactionDto = transactionDto();
-
-        //given(transactionService.editTransaction(1L, transactionDto)).willReturn(transactionDto);
+        given(transactionService.editTransaction(1L, transactionDto)).willReturn(transaction());
+        given(transactionMapper.toTransactionDto(transaction())).willReturn(transactionDto());
 
         mockMvc.perform(put("/transactions/1")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(toJson(transactionDto))
+                .content(toJson(transactionDto()))
         )
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(jsonPath("transactionName", equalTo(TRANSACTION_NAME)))
-                .andExpect(jsonPath("transactionDesc", equalTo(TRANSACTION_DESC)))
+                .andExpect(jsonPath("id", equalTo("1L")))
+                .andExpect(jsonPath("transactionName", equalTo(TRANSACTION_NAME_1)))
+                .andExpect(jsonPath("transactionDesc", equalTo(TRANSACTION_DESC_1)))
                 .andExpect(jsonPath("transactionAmount", is(10)))
-                .andExpect(jsonPath("transactionType", equalTo(TRANSACTION_TYPE.name())))
-                .andExpect(jsonPath("transactionDate", is(TRANSACTION_DATE.toString())))
-                .andExpect(jsonPath("transactionKind", equalTo(TRANSACTION_KIND.name())));
+                .andExpect(jsonPath("transactionType", equalTo(TRANSACTION_TYPE_1.name())))
+                .andExpect(jsonPath("transactionDate", is(TRANSACTION_DATE_1.toString())))
+                .andExpect(jsonPath("transactionKind", equalTo(TRANSACTION_KIND_1.name())));
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
+import com.pl.restApi.model.Tag;
 import com.pl.restApi.validator.annotation.IsValidTransactionKind;
 import com.pl.restApi.validator.annotation.IsValidTransactionType;
 import lombok.*;
@@ -15,15 +16,17 @@ import javax.validation.constraints.Past;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Set;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class TransactionDto implements Serializable {
 
     @NotNull
-    private Long id;
+    private String id;
 
     @NotNull
     @Length(min = 5)
@@ -46,6 +49,8 @@ public class TransactionDto implements Serializable {
 
     @IsValidTransactionKind
     private String transactionKind;
+
+    /*private Set<TagDto> tags;*/
 
     public String getTransactionKind() {
         if("".equals(this.transactionKind)) {

@@ -5,21 +5,25 @@ import com.pl.restApi.exception.TransactionNotFoundException;
 import com.pl.restApi.mapper.TransactionMapper;
 import com.pl.restApi.model.Transaction;
 import com.pl.restApi.service.ITransactionService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Log4j2
 @RestController
 @RequestMapping(path = "/transactions")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TransactionController {
 
     private final ITransactionService transactionService;
+    private final TransactionMapper transactionMapper;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
@@ -37,9 +41,9 @@ public class TransactionController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Transaction saveTransaction(@RequestBody TransactionDto transactionDto) {
+    public TransactionDto saveTransaction(@RequestBody TransactionDto transactionDto) {
         log.info("TransactionController::saveTransaction(?) - {}", transactionDto);
-        return transactionService.processSaveTransaction(asEntity(transactionDto));
+        return asDto(transactionService.processSaveTransaction(transactionDto));
     }
 
     @DeleteMapping("/{transactionId}")
@@ -51,23 +55,16 @@ public class TransactionController {
 
     @PutMapping("/{transactionId}")
     @ResponseStatus(HttpStatus.OK)
-    public Transaction editTransaction(@PathVariable Long transactionId, @RequestBody TransactionDto transactionDto) {
+    public TransactionDto editTransaction(@PathVariable Long transactionId, @RequestBody TransactionDto transactionDto) {
         log.info("TransactionController::editTransaction(?,?) - id = {}, transaction = {}", transactionId, transactionDto);
-        return transactionService.editTransaction(transactionId, transactionDto);
+        return asDto(transactionService.editTransaction(transactionId, transactionDto));
     }
 
     private List<TransactionDto> asDtoList(List<Transaction> transactionList) {
-        return transactionList
-                .stream()
-                .map(TransactionMapper.INSTANCE::toTransactionDto)
-                .collect(Collectors.toList());
+       return transactionMapper.mapToTransactionDTOList(transactionList);
     }
 
     private TransactionDto asDto(Transaction transaction) {
-        return TransactionMapper.INSTANCE.toTransactionDto(transaction);
-    }
-
-    private Transaction asEntity(TransactionDto transactionDto) {
-        return TransactionMapper.INSTANCE.toTransaction(transactionDto);
+        return transactionMapper.toTransactionDto(transaction);
     }
 }

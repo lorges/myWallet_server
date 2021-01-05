@@ -12,7 +12,7 @@ public interface ITransactionService {
 
     Transaction getTransaction(Long transactionId) throws TransactionNotFoundException;
 
-    Transaction processSaveTransaction(Transaction transaction);
+    Transaction processSaveTransaction(TransactionDto transactionDto);
 
     /**
      * Method for deleting transaction with given transactionId from database.
@@ -22,6 +22,4 @@ public interface ITransactionService {
     void deleteTransaction(Long transactionId) throws TransactionNotFoundException;
 
     Transaction editTransaction(Long transactionId, TransactionDto transactionDto) throws TransactionNotFoundException;
-
-    TransactionDto mapToDto(Transaction transaction);
 }
