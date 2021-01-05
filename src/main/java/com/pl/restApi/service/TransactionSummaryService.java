@@ -6,6 +6,7 @@ import com.pl.restApi.mapper.TransactionMapper;
 import com.pl.restApi.model.Transaction;
 import com.pl.restApi.model.enums.TransactionType;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -20,10 +21,10 @@ import java.util.stream.Collectors;
 
 @Log4j2
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TransactionSummaryService implements ITransactionSummaryService {
 
-    private ITransactionService transactionService;
+    private final ITransactionService transactionService;
     private final TransactionMapper transactionMapper;
 
     @Override
@@ -68,9 +69,6 @@ public class TransactionSummaryService implements ITransactionSummaryService {
     }
 
     private List<TransactionDto> asDtoList(List<Transaction> transactionList) {
-        return transactionList
-                .stream()
-                .map(transactionMapper::toTransactionDto)
-                .collect(Collectors.toList());
+        return transactionMapper.mapToTransactionDTOList(transactionList);
     }
 }
