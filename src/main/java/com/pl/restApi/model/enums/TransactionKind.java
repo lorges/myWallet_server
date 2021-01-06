@@ -1,5 +1,9 @@
 package com.pl.restApi.model.enums;
 
 public enum TransactionKind {
-    FOOD
+    FOOD,
+    HOBBY,
+    HOUSE,
+    FUEL,
+    ALCOHOL
 }
