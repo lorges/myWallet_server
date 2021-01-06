@@ -12,19 +12,29 @@ import java.util.List;
 
 public class BaseTransactionUtils {
 
-    protected final static String TRANSACTION_NAME_1 = "Testowa";
-    protected final static String TRANSACTION_DESC_1 = "Testowy description";
-    protected final static BigDecimal TRANSACTION_AMOUNT_1 = BigDecimal.TEN;
-    protected final static LocalDate TRANSACTION_DATE_1 = LocalDate.of(2020,10,10);
-    protected final static TransactionKind TRANSACTION_KIND_1 = TransactionKind.FOOD;
-    protected final static TransactionType TRANSACTION_TYPE_1 = TransactionType.SPEND;
+    public final static Long TRANSACTION_ID_1 = 1L;
+    public final static String TRANSACTION_NAME_1 = "Testowa";
+    public final static String TRANSACTION_DESC_1 = "Testowy description";
+    public final static BigDecimal TRANSACTION_AMOUNT_1 = BigDecimal.TEN;
+    public final static LocalDate TRANSACTION_DATE_1 = LocalDate.of(2020,10,10);
+    public final static TransactionKind TRANSACTION_KIND_1 = TransactionKind.FOOD;
+    public final static TransactionType TRANSACTION_TYPE_1 = TransactionType.SPEND;
 
-    protected final static String TRANSACTION_NAME_2 = "Testowa";
-    protected final static String TRANSACTION_DESC_2 = "Testowy description";
-    protected final static BigDecimal TRANSACTION_AMOUNT_2 = BigDecimal.ONE;
-    protected final static LocalDate TRANSACTION_DATE_2 = LocalDate.of(2020,10,10);
-    protected final static TransactionKind TRANSACTION_KIND_2 = TransactionKind.FOOD;
-    protected final static TransactionType TRANSACTION_TYPE_2 = TransactionType.SPEND;
+    public final static Long TRANSACTION_ID_2 = 2L;
+    public final static String TRANSACTION_NAME_2 = "Testowa";
+    public final static String TRANSACTION_DESC_2 = "Testowy description";
+    public final static BigDecimal TRANSACTION_AMOUNT_2 = BigDecimal.ONE;
+    public final static LocalDate TRANSACTION_DATE_2 = LocalDate.of(2020,10,14);
+    public final static TransactionKind TRANSACTION_KIND_2 = TransactionKind.FOOD;
+    public final static TransactionType TRANSACTION_TYPE_2 = TransactionType.SPEND;
+
+    public final static Long TRANSACTION_ID_3 = 3L;
+    public final static String TRANSACTION_NAME_3 = "Testowa 3 ";
+    public final static String TRANSACTION_DESC_3 = "Testowy description 3";
+    public final static BigDecimal TRANSACTION_AMOUNT_3 = BigDecimal.valueOf(1221.21);
+    public final static LocalDate TRANSACTION_DATE_3 = LocalDate.of(2020,12,1);
+    public final static TransactionKind TRANSACTION_KIND_3 = TransactionKind.FOOD;
+    public final static TransactionType TRANSACTION_TYPE_3 = TransactionType.SPEND;
 
     protected Transaction transaction() {
         return Transaction.builder()

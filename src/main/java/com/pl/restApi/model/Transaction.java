@@ -17,6 +17,15 @@ import java.util.Set;
 @AllArgsConstructor
 public class Transaction {
 
+    public Transaction(Long id, String transactionName, LocalDate transactionDate, BigDecimal transactionAmount, TransactionType transactionType, TransactionKind transactionKind) {
+        this.id = id;
+        this.transactionName = transactionName;
+        this.transactionDate = transactionDate;
+        this.transactionAmount = transactionAmount;
+        this.transactionType = transactionType;
+        this.transactionKind = transactionKind;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
