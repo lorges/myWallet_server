@@ -5,5 +5,10 @@ public enum TransactionKind {
     HOBBY,
     HOUSE,
     FUEL,
-    ALCOHOL
+    ALCOHOL,
+    CAR,
+    EDUCATION,
+    TRAVEL,
+    CLOTHES,
+    FUN
 }
